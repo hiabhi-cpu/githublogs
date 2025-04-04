@@ -31,6 +31,7 @@ func repl(cfg *config) {
 		if words[0] == "exit" {
 			break
 		}
+
 		cfg.user.Username = words[0]
 
 		url := "https://api.github.com/users/<username>/events"
