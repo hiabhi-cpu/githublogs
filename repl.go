@@ -25,7 +25,8 @@ func repl(cfg *config) {
 			continue
 		}
 		cfg.user.Username = words[0]
-		fmt.Println(words[0])
+		// fmt.Println(words[0])
+
 	}
 }
 
