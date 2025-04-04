@@ -2,9 +2,13 @@ package main
 
 import (
 	"bufio"
+	"encoding/json"
 	"fmt"
+	"io"
+	"net/http"
 	"os"
 	"strings"
+	"time"
 
 	"github.com/hiabhi-cpu/githublogs/internal/user"
 )
@@ -24,9 +28,53 @@ func repl(cfg *config) {
 			fmt.Println("Wrong Input")
 			continue
 		}
+		if words[0] == "exit" {
+			break
+		}
 		cfg.user.Username = words[0]
-		// fmt.Println(words[0])
 
+		url := "https://api.github.com/users/<username>/events"
+		url = strings.Replace(url, "<username>", cfg.user.Username, len(cfg.user.Username))
+		fmt.Println(url)
+
+		client := http.Client{
+			Timeout: time.Minute,
+		}
+
+		req, err := http.NewRequest("GET", url, nil)
+		if err != nil {
+			fmt.Errorf("An erroe", err)
+			continue
+		}
+
+		res, err := client.Do(req)
+		if err != nil {
+			fmt.Errorf("An erroe", err)
+			continue
+		}
+		defer res.Body.Close()
+
+		if res.StatusCode != 200 {
+			fmt.Println("User not exists")
+			continue
+		}
+
+		data, err := io.ReadAll(res.Body)
+		if err != nil {
+			fmt.Errorf("An erroe", err)
+			continue
+		}
+
+		logResponse := LogResponse{}
+
+		if err = json.Unmarshal(data, &logResponse); err != nil {
+			fmt.Errorf("Error in data reading", err)
+			continue
+		}
+		for _, r := range logResponse {
+			fmt.Println(r.Repo.Name, " : ", r.Type)
+		}
+		// fmt.Println(logResponse)
 	}
 }
 
